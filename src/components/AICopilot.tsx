@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { startTransition, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useLocation } from 'react-router';
 import remarkGfm from 'remark-gfm';
 import { getCurrentUserRole } from '../lib/session';
 import { aiCopilotService } from '../services/aiCopilotService';
@@ -13,7 +14,8 @@ const WELCOME_MESSAGE: AICopilotMessage = {
   status: 'done',
 };
 
-const canUseAICopilot = (role: string) => role === 'ADMIN' || role === 'MANAGEMENT';
+const canUseAICopilot = (role: string | null) => 
+  role === 'ADMIN' || role === 'MANAGEMENT' || role === 'OFFICER';
 
 const ChatMessage = ({
   message,
@@ -59,10 +61,15 @@ const ChatMessage = ({
 };
 
 export const AICopilot = () => {
+  const location = useLocation();
   const role = getCurrentUserRole();
   const canAccess = canUseAICopilot(role);
-  const chatViewportRef = useRef<HTMLDivElement>(null);
+  
+  // Strict Shield: Only materialize in secure dashboard environments
+  const PUBLIC_PATHS = ['/login', '/forgot-password', '/privacy-policy'];
+  const isPublicPage = PUBLIC_PATHS.includes(location.pathname);
 
+  const chatViewportRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [chatHistory, setChatHistory] = useState<AICopilotMessage[]>([WELCOME_MESSAGE]);
@@ -87,7 +94,8 @@ export const AICopilot = () => {
     }
   }, [chatHistory, currentStreamedText, isOpen]);
 
-  if (!canAccess) return null;
+  // Shield: Hide on public pages and for non-admin/officer roles
+  if (isPublicPage || !canAccess) return null;
 
   const submitPrompt = async () => {
     const prompt = draft.trim();
