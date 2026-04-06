@@ -113,14 +113,17 @@ export const UserManagement = () => {
     }
     const loader = toast.loading('Executing secure revocation...')
     try {
-      const { error } = await authService.deleteUser(userToDelete.id)
+      // Re-implementing Suspend-only logic to preserve referential integrity.
+      // Deleting users directly causes database errors if they have applicants assigned.
+      const { error } = await authService.updateUserProfile(userToDelete.id, { status: 'SUSPENDED' })
       if (error) throw error
-      toast.success('Personnel record purged', { id: loader })
+      
+      toast.success('Access Revoked & Identity Locked', { id: loader })
       setUserToDelete(null)
       fetchData()
     } catch (err) {
       console.error(err)
-      toast.error('Purge request rejected by system', { id: loader })
+      toast.error('Revocation request rejected by system', { id: loader })
     }
   }
 

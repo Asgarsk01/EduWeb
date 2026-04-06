@@ -41,6 +41,13 @@ export const authService = {
         }
 
         const { data: profile, error: profileError } = await authService.getProfile(user.id);
+        
+        // Block suspended users immediately
+        if (profile?.status === 'SUSPENDED') {
+          await supabase.auth.signOut();
+          return { user: null, profile: null, error: new Error('Your account has been suspended. Please contact the administrator.') };
+        }
+
         return { user, profile, error: profileError };
       } catch (err: any) {
         // Handle the Supabase lock/abort error gracefully
@@ -49,13 +56,17 @@ export const authService = {
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.user) {
              const { data: profile } = await authService.getProfile(session.user.id);
+             
+             if (profile?.status === 'SUSPENDED') {
+               await supabase.auth.signOut();
+               return { user: null, profile: null, error: new Error('Account suspended.') };
+             }
+
              return { user: session.user, profile, error: null };
           }
         }
         return { user: null, profile: null, error: err };
       } finally {
-        // Clear the promise after a short delay to allow fresh checks later 
-        // while still collapsing rapid simultaneous bursts.
         setTimeout(() => { this._currentUserPromise = null; }, 1000);
       }
     })();
@@ -85,11 +96,9 @@ export const authService = {
       .single();
   },
 
-  /**
-   * Administrative: Deletes a user profile record.
-   * Note: This does NOT delete the auth.users record (requires Admin SDK).
-   */
   async deleteUser(userId: string) {
+    // Deprecated for standard staff revocation to avoid breaking foreign key constraints.
+    // Use updateUserProfile(id, { status: 'SUSPENDED' }) instead.
     return await supabase
       .from('user_profiles')
       .delete()
@@ -107,6 +116,13 @@ export const authService = {
     }
 
     const { data: profile, error: profileError } = await authService.getProfile(user.id);
+
+    // Enforcement: Reject login for suspended accounts
+    if (profile?.status === 'SUSPENDED') {
+       await supabase.auth.signOut();
+       return { user: null, profile: null, error: new Error('This account has been deactivated. Access is denied.') };
+    }
+
     return { user, profile, error: profileError };
   },
 
