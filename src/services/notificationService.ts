@@ -23,7 +23,7 @@ export const notificationService = {
       .order('created_at', { ascending: false })
       .limit(50);
 
-    return { data: (data as Notification[]) || [], error };
+    return { data: (data as unknown as Notification[]) || [], error };
   },
 
   /**
@@ -48,7 +48,7 @@ export const notificationService = {
    * Subscribes to real-time inserts on system_notifications.
    * Returns an unsubscribe function for cleanup.
    */
-  subscribeToNewNotifications(callback: (payload: any) => void) {
+  subscribeToNewNotifications(callback: (payload: { new: Notification }) => void) {
     const channel = supabase
       .channel('realtime-notifications')
       .on(
@@ -58,7 +58,9 @@ export const notificationService = {
           schema: 'public',
           table: 'system_notifications',
         },
-        callback
+        (payload) => {
+          callback(payload as unknown as { new: Notification });
+        }
       )
       .subscribe();
 

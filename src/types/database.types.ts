@@ -82,6 +82,13 @@ export type Database = {
             referencedRelation: "vw_program_progress"
             referencedColumns: ["program_id"]
           },
+          {
+            foreignKeyName: "admission_sequences_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "vw_quota_distribution"
+            referencedColumns: ["program_id"]
+          },
         ]
       }
       applicant_documents: {
@@ -281,6 +288,13 @@ export type Database = {
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "vw_program_progress"
+            referencedColumns: ["program_id"]
+          },
+          {
+            foreignKeyName: "applicants_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "vw_quota_distribution"
             referencedColumns: ["program_id"]
           },
         ]
@@ -495,6 +509,46 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_reads: {
+        Row: {
+          notification_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          notification_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          notification_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_reads_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "system_notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_reads_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "vw_my_notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programs: {
         Row: {
           campus_id: string
@@ -614,15 +668,62 @@ export type Database = {
             referencedRelation: "vw_program_progress"
             referencedColumns: ["program_id"]
           },
+          {
+            foreignKeyName: "seat_matrices_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "vw_quota_distribution"
+            referencedColumns: ["program_id"]
+          },
+        ]
+      }
+      system_notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          message: string
+          target_roles: string[]
+          title: string
+          type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          target_roles: string[]
+          title: string
+          type: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          target_roles?: string[]
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_profiles: {
         Row: {
           campus_id: string | null
           created_at: string
+          dob: string | null
           email: string
           full_name: string
           id: string
+          id_number: string | null
           role: Database["public"]["Enums"]["user_role"]
           status: Database["public"]["Enums"]["user_status"]
           updated_at: string
@@ -630,9 +731,11 @@ export type Database = {
         Insert: {
           campus_id?: string | null
           created_at?: string
+          dob?: string | null
           email: string
           full_name: string
           id: string
+          id_number?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
@@ -640,9 +743,11 @@ export type Database = {
         Update: {
           campus_id?: string | null
           created_at?: string
+          dob?: string | null
           email?: string
           full_name?: string
           id?: string
+          id_number?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
@@ -675,6 +780,27 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_my_notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string | null
+          id: string | null
+          is_read: boolean | null
+          message: string | null
+          target_roles: string[] | null
+          title: string | null
+          type: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vw_problem_areas: {
         Row: {
           applicant_id: string | null
@@ -691,24 +817,42 @@ export type Database = {
       }
       vw_program_progress: {
         Row: {
+          academic_year_id: string | null
+          campus_id: string | null
           confirmed_seats: number | null
+          course_level: string | null
           program_id: string | null
           program_name: string | null
           reserved_seats: number | null
           total_seats: number | null
           vacant_seats: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "programs_campus_id_fkey"
+            columns: ["campus_id"]
+            isOneToOne: false
+            referencedRelation: "campuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seat_matrices_academic_year_id_fkey"
+            columns: ["academic_year_id"]
+            isOneToOne: false
+            referencedRelation: "academic_years"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vw_quota_distribution: {
         Row: {
-          comedk_fill_ratio: number | null
+          academic_year_id: string | null
+          campus_id: string | null
           comedk_filled: number | null
           comedk_quota: number | null
-          kcet_fill_ratio: number | null
+          course_level: string | null
           kcet_filled: number | null
           kcet_quota: number | null
-          management_fill_ratio: number | null
           management_filled: number | null
           management_quota: number | null
           program_id: string | null
@@ -716,18 +860,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "seat_matrices_program_id_fkey"
-            columns: ["program_id"]
+            foreignKeyName: "programs_campus_id_fkey"
+            columns: ["campus_id"]
             isOneToOne: false
-            referencedRelation: "programs"
+            referencedRelation: "campuses"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "seat_matrices_program_id_fkey"
-            columns: ["program_id"]
+            foreignKeyName: "seat_matrices_academic_year_id_fkey"
+            columns: ["academic_year_id"]
             isOneToOne: false
-            referencedRelation: "vw_program_progress"
-            referencedColumns: ["program_id"]
+            referencedRelation: "academic_years"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -741,6 +885,24 @@ export type Database = {
           confirmed_count: number
         }[]
       }
+      get_dashboard_metrics: {
+        Args: {
+          p_academic_year_id?: string
+          p_campus_id?: string
+          p_course_level?: string
+        }
+        Returns: Json
+      }
+      global_crm_search: {
+        Args: { p_search_query: string }
+        Returns: {
+          result_id: string
+          result_item_type: string
+          result_route: string
+          result_subtitle: string
+          result_title: string
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       is_management: { Args: never; Returns: boolean }
       is_officer: { Args: never; Returns: boolean }
@@ -751,6 +913,11 @@ export type Database = {
           p_bottleneck_type?: string
           p_details?: Json
         }
+        Returns: undefined
+      }
+      mark_all_notifications_read: { Args: never; Returns: undefined }
+      mark_notification_read: {
+        Args: { p_notification_id: string }
         Returns: undefined
       }
     }
