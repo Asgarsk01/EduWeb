@@ -431,6 +431,30 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_metric_snapshots: {
+        Row: {
+          created_at: string
+          snapshot_date: string
+          total_confirmed: number
+          total_leads: number
+          total_locked: number
+        }
+        Insert: {
+          created_at?: string
+          snapshot_date: string
+          total_confirmed?: number
+          total_leads?: number
+          total_locked?: number
+        }
+        Update: {
+          created_at?: string
+          snapshot_date?: string
+          total_confirmed?: number
+          total_leads?: number
+          total_locked?: number
+        }
+        Relationships: []
+      }
       document_masters: {
         Row: {
           course_level_req: string
@@ -764,6 +788,15 @@ export type Database = {
       }
     }
     Views: {
+      vw_ai_fee_aging: {
+        Row: {
+          overdue_0_7_days: number | null
+          overdue_30_plus_days: number | null
+          overdue_8_30_days: number | null
+          total_pending: number | null
+        }
+        Relationships: []
+      }
       vw_funnel_metrics: {
         Row: {
           status_group: string | null

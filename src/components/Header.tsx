@@ -154,7 +154,8 @@ export const Header = () => {
       transition={{ duration: 0.5, delay: 0.1 }}
       className="sticky top-0 z-[100] bg-background/80 backdrop-blur-xl flex justify-between items-center w-full px-12 py-6"
     >
-      <div className="flex items-center gap-6 text-left">
+      {/* Left Section: Context */}
+      <div className="flex-1 flex items-center justify-start">
         <div className="text-left">
           <h1 className="text-2xl font-satoshi font-black text-on-surface leading-tight text-left">
             Hello, {userName}!
@@ -173,8 +174,12 @@ export const Header = () => {
         </div>
       </div>
 
-      {/* Right Section: Actions */}
-      <div className="flex items-center gap-4">
+      {/* Center Section: Spacer for layout balance */}
+      <div className="flex-1" />
+
+      {/* Right Section: Tools */}
+      <div className="flex-1 flex items-center justify-end gap-4">
+
         {/* Optimized Search Bar */}
         <div className="relative flex items-center">
           <motion.div
