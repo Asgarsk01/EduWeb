@@ -20,7 +20,6 @@ interface UserRecord {
 export const UserManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
-  const [userToDelete, setUserToDelete] = useState<UserRecord | null>(null)
   const [loading, setLoading] = useState(true)
   
   const [users, setUsers] = useState<UserRecord[]>([])
@@ -103,31 +102,6 @@ export const UserManagement = () => {
       toast.error('Access modification protocol failed', { id: loader })
     }
   }
-
-  const handleDelete = async () => {
-    if (!userToDelete) return
-    if (userToDelete.id === currentId) {
-      toast.error('Security Breach Prevented: Users cannot revoke their own root system identity.')
-      setUserToDelete(null)
-      return
-    }
-    const loader = toast.loading('Executing secure revocation...')
-    try {
-      // Re-implementing Suspend-only logic to preserve referential integrity.
-      // Deleting users directly causes database errors if they have applicants assigned.
-      const { error } = await authService.updateUserProfile(userToDelete.id, { status: 'SUSPENDED' })
-      if (error) throw error
-      
-      toast.success('Access Revoked & Identity Locked', { id: loader })
-      setUserToDelete(null)
-      fetchData()
-    } catch (err) {
-      console.error(err)
-      toast.error('Revocation request rejected by system', { id: loader })
-    }
-  }
-
-
 
   const handleProvision = async () => {
     if (!newName || !newEmail || !newRole || !newIdNumber || !dobDay || !dobMonth || !dobYear) {
@@ -340,7 +314,7 @@ export const UserManagement = () => {
                                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
                                 className="absolute right-8 top-12 z-[70] w-48 bg-white rounded-md shadow-xl border border-slate-100 overflow-hidden text-left py-1"
                               >
-                                <button 
+                                 <button 
                                   onClick={() => {
                                     toggleStatus(u)
                                     setActiveMenu(null)
@@ -349,16 +323,6 @@ export const UserManagement = () => {
                                 >
                                   <span className="material-symbols-outlined text-sm">{u.status === 'ACTIVE' ? 'person_off' : 'person_check'}</span>
                                   {u.status === 'ACTIVE' ? 'Suspend Access' : 'Restore Access'}
-                                </button>
-                                <div className="h-px bg-slate-100 my-1" />
-                                <button 
-                                  onClick={() => {
-                                    setUserToDelete(u)
-                                    setActiveMenu(null)
-                                  }}
-                                  className="w-full px-4 py-2 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
-                                >
-                                  <span className="material-symbols-outlined text-sm text-red-400 font-normal">person_remove</span> Terminate Personnel
                                 </button>
                               </motion.div>
                             </>
@@ -620,64 +584,6 @@ export const UserManagement = () => {
                   )}
                 </div>
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Secure Delete Confirmation */}
-      <AnimatePresence>
-        {userToDelete && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setUserToDelete(null)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-[8px]"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: 10 }}
-              className="relative w-full max-w-sm bg-white rounded-3xl shadow-[0px_40px_80px_rgba(0,0,0,0.1)] border border-slate-200 p-8 text-center"
-            >
-                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-100 shadow-inner">
-                    <span className="material-symbols-outlined text-[32px] animate-pulse">person_remove</span>
-                </div>
-                
-                <h3 className="text-2xl font-satoshi font-black text-blue-950 tracking-tight italic">Revoke Access</h3>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-500/60 mt-1 mb-6">Security Protocol Action</p>
-                
-                <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed px-4 font-body">
-                    Deleting <span className="font-bold text-slate-900 underline decoration-red-200">"{userToDelete.full_name}"</span> will immediately terminate all active sessions and block system entry.
-                </p>
-
-                <div className="bg-rose-50/50 p-4 rounded-xl border border-red-100/50 text-left mb-8 font-body">
-                     <div className="flex gap-2">
-                        <span className="material-symbols-outlined text-red-500 text-sm">security</span>
-                        <p className="text-[10px] font-bold text-red-800/70 uppercase tracking-widest leading-normal italic">
-                            All personnel logs and historical activities will be locked post-revocation.
-                        </p>
-                     </div>
-                </div>
-
-                <div className="flex flex-col gap-3 font-body">
-                    <motion.button 
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleDelete}
-                        className="w-full py-4 bg-red-600 text-white rounded-xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-red-200 hover:bg-red-700 transition-colors"
-                    >
-                        Confirm Revocation
-                    </motion.button>
-                    <button 
-                        onClick={() => setUserToDelete(null)}
-                        className="w-full py-4 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-slate-900 transition-colors"
-                    >
-                        Abort Protocol
-                    </button>
-                </div>
             </motion.div>
           </div>
         )}
